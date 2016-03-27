@@ -6,6 +6,17 @@ public class TextUtil {
 	public static boolean isEmpty(String text) {
 		return text == null || text.length() == 0;
 	}
+	
+	public static String generateImageFileName(String imgLink) {
+		if (isEmpty(imgLink)) {
+			return null;
+		}
+		int lastSep = imgLink.lastIndexOf('/');
+		if (lastSep < 0 || lastSep >= imgLink.length()) {
+			return null;
+		}
+		return imgLink.substring(lastSep + 1);
+	}
 
     public static String generateFileName(String origin) {
 		if (!isEmpty(origin)) {

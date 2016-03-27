@@ -1,17 +1,15 @@
-package com.crawler.aiwei;
+package com.crawler.aiwei.story;
 
 import java.net.MalformedURLException;
-import java.net.URL;
-import java.nio.charset.Charset;
 import java.util.LinkedList;
-import java.util.List;
 
 import javax.swing.text.MutableAttributeSet;
 import javax.swing.text.html.HTML;
 import javax.swing.text.html.HTMLEditorKit.ParserCallback;
 
-import org.apache.http.NameValuePair;
-import org.apache.http.client.utils.URLEncodedUtils;
+import com.crawler.aiwei.Config;
+import com.crawler.aiwei.ParseUtil;
+import com.crawler.aiwei.TextUtil;
 
 public class StoryParser extends ParserCallback {
 
@@ -43,10 +41,13 @@ public class StoryParser extends ParserCallback {
         }
         String text = new String(data);
         if (parseSubPage && subPageUrls.size() == 0 && inPageDiv && inA && !StoryDownloader.isEmptyText(aLink) && LAST_PAGE_TAG.equals(text)) {
-        	String url = StoryListParser.PREFEX_STORY_URL + aLink;
+        	String url = Config.PREFIX_URL + aLink;
         	try {
-				parsePage(url);
+				if (!ParseUtil.parseSubPage(subPageUrls, url)) {
+					System.out.println("Failed to parse sub page!");
+				}
 			} catch (MalformedURLException e) {
+				System.out.println("Failed to parse sub page!");
 				e.printStackTrace();
 			}
         }
@@ -105,49 +106,6 @@ public class StoryParser extends ParserCallback {
     
     public LinkedList<String> getSubPageUrls() {
     	return subPageUrls;
-    }
-
-    private void parsePage(String urlStr) throws MalformedURLException {
-    	System.out.println("parsePage() url:" + urlStr);
-    	URL url = new URL(urlStr);
-    	List<NameValuePair> params = URLEncodedUtils.parse(url.getQuery(), Charset.forName("utf-8"));
-    	if (params == null || params.size() < 1) {
-    		return;
-    	}
-    	final String pageParamName = "page";
-    	NameValuePair pagePair = null;
-    	int totalPage = 0;
-    	for (NameValuePair pair : params) {
-    		if (pair == null) continue;
-    		if (pageParamName.equals(pair.getName())) {
-    			pagePair = pair;
-    	    	totalPage = Integer.valueOf(pair.getValue());
-    		}
-    	}
-    	if (totalPage < 1) {
-    		System.out.println("Total page error!!");
-    		return;
-    	}
-    	for (int i = 2; i <= totalPage; i++) {
-    		params.remove(pagePair);
-    		final int pageIndex = i;
-    		pagePair = new NameValuePair() {
-				
-				@Override
-				public String getValue() {
-					return pageIndex + "";
-				}
-				
-				@Override
-				public String getName() {
-					return pageParamName;
-				}
-			};
-    		params.add(pagePair);
-    		String subUrl = urlStr.subSequence(0, urlStr.indexOf("?") + 1) + URLEncodedUtils.format(params, "utf-8");
-    		subPageUrls.add(subUrl);
-    		System.out.println("subPageUrl:" + subUrl);
-    	}
     }
 
 }

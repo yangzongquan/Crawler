@@ -1,4 +1,4 @@
-package com.crawler.aiwei;
+package com.crawler.aiwei.story;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -11,6 +11,8 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+
+import com.crawler.aiwei.Config;
 
 public class StoryCleaner {
     
@@ -59,8 +61,8 @@ public class StoryCleaner {
         BufferedWriter bw = null;
         File outpuFile = new File(OUTPUT_DIRECTORY_PATH + storyFile.getName());
         try {
-            br = new BufferedReader(new InputStreamReader(new FileInputStream(storyFile), Charset.forName(AIWEIStoryCrawler.HTML_CHARSET)));
-            bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outpuFile), Charset.forName(AIWEIStoryCrawler.HTML_CHARSET)));
+            br = new BufferedReader(new InputStreamReader(new FileInputStream(storyFile), Charset.forName(Config.HTML_CHARSET)));
+            bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outpuFile), Charset.forName(Config.HTML_CHARSET)));
             String lineStr;
             while (true) {
                 lineStr = br.readLine();
@@ -95,6 +97,7 @@ public class StoryCleaner {
             bw.flush();
         } catch (Exception e) {
             System.out.println(e.getMessage());
+            outpuFile.delete();
         } finally {
             try {
                 br.close();
@@ -120,8 +123,8 @@ public class StoryCleaner {
         BufferedWriter bw = null;
         File outpuFile = new File(storyFile.getAbsolutePath().replace(".txt", "") + "_mergeline.txt");
         try {
-            br = new BufferedReader(new InputStreamReader(new FileInputStream(storyFile), Charset.forName(AIWEIStoryCrawler.HTML_CHARSET)));
-            bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outpuFile), Charset.forName(AIWEIStoryCrawler.HTML_CHARSET)));
+            br = new BufferedReader(new InputStreamReader(new FileInputStream(storyFile), Charset.forName(Config.HTML_CHARSET)));
+            bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outpuFile), Charset.forName(Config.HTML_CHARSET)));
             for (int i = 0; i < ignoreLineCount; i++) {
                 br.readLine();
             }
@@ -153,6 +156,7 @@ public class StoryCleaner {
             }
             bw.flush();
         } catch (Exception e) {
+        	outpuFile.delete();
             System.out.println(e.getMessage());
         } finally {
             try {

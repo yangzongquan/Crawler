@@ -13,9 +13,38 @@ import javax.swing.text.html.HTML;
 import javax.swing.text.html.HTMLEditorKit.ParserCallback;
 import javax.swing.text.html.parser.ParserDelegator;
 
-import com.crawler.aiwei.AIWEIStoryCrawler.StorySummary;
+public class ListParser extends ParserCallback {
 
-public class StoryListParser extends ParserCallback {
+    public static final class Summary {
+        public String url;
+        public String name;
+        public String author;
+        public String date;
+
+        public Summary() {
+            reset();
+        }
+
+        public Summary(String url, String name, String author, String date) {
+        	this.url = url;
+        	this.name = name;
+        	this.author = author;
+        	this.date = date;
+        }
+
+        public void reset() {
+        	this.url = null;
+        	this.name = null;
+        	this.author = null;
+        	this.date = null;
+        }
+
+        @Override
+        public String toString() {
+            return name + ";" + author + ";" + date + ";" + url + "\n";
+        }
+
+    }
 
     private static final HashSet<String> EXCLUDE_AUTHOR = new HashSet<String>(5);
     static {
@@ -27,14 +56,12 @@ public class StoryListParser extends ParserCallback {
     	return EXCLUDE_AUTHOR.contains(author);
     }
     
-    public static final String PREFEX_STORY_URL = "http://dtt.1024hgc.club/pw/";
-    
-    public final static ArrayList<StorySummary> startParse(String htmlFileLocation) throws IOException {
+    public final static ArrayList<Summary> startParse(String htmlFileLocation) throws IOException {
         BufferedReader brd = null;
         try {
-            brd = new BufferedReader(new InputStreamReader(new FileInputStream(htmlFileLocation), AIWEIStoryCrawler.HTML_CHARSET));
+            brd = new BufferedReader(new InputStreamReader(new FileInputStream(htmlFileLocation), Config.HTML_CHARSET));
             ParserDelegator ps = new ParserDelegator();
-            StoryListParser parser = new StoryListParser();
+            ListParser parser = new ListParser();
             ps.parse(brd, parser, true);
             return parser.mStorySummaryList;
         } finally {
@@ -49,8 +76,8 @@ public class StoryListParser extends ParserCallback {
 
     public static final Pattern textPattern = Pattern.compile("\\s*|\t|\r|\n");
 
-    private StorySummary mCurrentStorySummary = null;
-    private ArrayList<StorySummary> mStorySummaryList = new ArrayList<StorySummary>();
+    private Summary mCurrentStorySummary = null;
+    private ArrayList<Summary> mStorySummaryList = new ArrayList<Summary>();
     
     private static final String LIST_TABLE_ID = "ajaxtable";
     private static final String MAIN_DIV_ID = "main";
@@ -66,7 +93,7 @@ public class StoryListParser extends ParserCallback {
     private boolean mIsAuthor;
     private boolean mIsDate;
 
-    public StoryListParser() {
+    public ListParser() {
     }
 
     public void handleText(char[] data, int pos) {
@@ -76,11 +103,11 @@ public class StoryListParser extends ParserCallback {
 //			System.out.println("name:" + text + ", trimName:" + mCurrentStorySummary.name);
         }
         if (mIsAuthor) {
-        	mCurrentStorySummary.author = text;
+        	mCurrentStorySummary.author = text.trim();
 //			System.out.println("author:" + text);
         }
 		if (mIsDate) {
-			mCurrentStorySummary.date = text;
+			mCurrentStorySummary.date = text.trim();
 
 			if (!isExcludeAuthor(mCurrentStorySummary.author)) {
 				mStorySummaryList.add(mCurrentStorySummary);
@@ -117,11 +144,11 @@ public class StoryListParser extends ParserCallback {
         		mInH3 = true;
 //    			System.out.println("mInH3");
         		
-        		mCurrentStorySummary = new StorySummary();
+        		mCurrentStorySummary = new Summary();
         	}
         } else if (t == HTML.Tag.A) {
         	if (mInH3) {
-        		mCurrentStorySummary.url = PREFEX_STORY_URL + (String) a.getAttribute(HTML.Attribute.HREF);
+        		mCurrentStorySummary.url = Config.PREFIX_URL + (String) a.getAttribute(HTML.Attribute.HREF);
 //    			System.out.println("url:" + mCurrentStorySummary.url);
         	} else if (isAuthorA(a)) {
 //    			System.out.println("isAuthorA");

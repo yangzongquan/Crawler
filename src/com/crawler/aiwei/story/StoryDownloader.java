@@ -1,4 +1,4 @@
-package com.crawler.aiwei;
+package com.crawler.aiwei.story;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -9,20 +9,23 @@ import java.util.LinkedList;
 
 import javax.swing.text.html.parser.ParserDelegator;
 
-import com.crawler.aiwei.AIWEIStoryCrawler.StorySummary;
+import com.crawler.aiwei.Config;
+import com.crawler.aiwei.HttpUtil;
+import com.crawler.aiwei.ListParser.Summary;
+import com.crawler.aiwei.TextUtil;
 
 public class StoryDownloader {
 
-    public static final String TEMP_FILE_LOCATION = AIWEIStoryCrawler.TEMP_FILE_LOCATION;
+    public static final String TEMP_FILE_LOCATION = StoryCrawler.TEMP_FILE_LOCATION;
 
-    private StorySummary mStorySummary;
+    private Summary mStorySummary;
     private StringBuffer mStoryBuffer = new StringBuffer();
 
-    public StoryDownloader(StorySummary storySummary) {
+    public StoryDownloader(Summary storySummary) {
         mStorySummary = storySummary;
     }
 
-    private boolean checkStorySummary(StorySummary storySummary) {
+    private boolean checkStorySummary(Summary storySummary) {
         if (isEmptyText(storySummary.url)) return false;
         if (isEmptyText(storySummary.name)) return false;
         return true;
@@ -35,7 +38,7 @@ public class StoryDownloader {
     public boolean startDownload() {
         boolean checked = checkStorySummary(mStorySummary);
         if (!checked) {
-            System.out.println("Incorrect story summary, details->" + mStorySummary.toString());
+            System.err.println("Incorrect story summary, details->" + mStorySummary.toString());
             return checked;
         }
 
@@ -51,20 +54,20 @@ public class StoryDownloader {
         if (result) {
             return saveStory();
         } else {
-            System.out.println("Failed to download story, status->" + result + ", details->" + mStorySummary.toString());
+            System.err.println("Failed to download story, status->" + result + ", details->" + mStorySummary.toString());
             return false;
         }
     }
 
     private boolean download(String urlStr, StringBuffer strBuffer, LinkedList<String> subUrls, boolean parseSubPage) {
-        boolean result = AIWEIStoryCrawler.downloadHtml(urlStr, TEMP_FILE_LOCATION, 5);
+        boolean result = HttpUtil.getDefend(urlStr, TEMP_FILE_LOCATION, 5);
         if (!result) {
-            System.out.println("Failed to download storyhtml, url->" + urlStr + ", details->" + mStorySummary.toString());
+            System.err.println("Failed to download storyhtml, url->" + urlStr + ", details->" + mStorySummary.toString());
             return false;
         }
         BufferedReader reader = null;
         try {
-            reader = new BufferedReader(new InputStreamReader(new FileInputStream(TEMP_FILE_LOCATION), AIWEIStoryCrawler.HTML_CHARSET));
+            reader = new BufferedReader(new InputStreamReader(new FileInputStream(TEMP_FILE_LOCATION), Config.HTML_CHARSET));
             ParserDelegator ps = new ParserDelegator();
             StoryParser parser = new StoryParser(parseSubPage);
             ps.parse(reader, parser, true);
@@ -76,7 +79,7 @@ public class StoryDownloader {
 				strBuffer.append(story);
 				return true;
 			} else {
-				System.out.println("Story text is NULL, url->" + urlStr + ", details->" + mStorySummary.toString());
+				System.err.println("Story text is NULL, url->" + urlStr + ", details->" + mStorySummary.toString());
 				return false;
 			}
         } catch (Exception e) {
@@ -94,7 +97,7 @@ public class StoryDownloader {
     private boolean saveStory() {
         File storyFile = generateStoryFileName();
         if (null == storyFile) {
-            System.out.println("Failed to generate story name, details->" + mStorySummary.toString());
+            System.err.println("Failed to generate story name, details->" + mStorySummary.toString());
             return false;
         }
         FileOutputStream fos = null;
@@ -109,7 +112,8 @@ public class StoryDownloader {
             fos.write(storyText.getBytes("GBK"));
             fos.flush();
         } catch (Exception e) {
-            System.out.println("Failed to save story, details->" + mStorySummary.toString());
+            System.err.println("Failed to save story, details->" + mStorySummary.toString());
+            storyFile.delete();
             e.printStackTrace();
             return false;
         } finally {
@@ -125,7 +129,7 @@ public class StoryDownloader {
     }
 
     private File generateStoryFileName() {
-            String filePath = AIWEIStoryCrawler.BASE_PATH + "/" + TextUtil.generateFileName(mStorySummary.name);
+            String filePath = StoryCrawler.BASE_PATH + "/" + TextUtil.generateFileName(mStorySummary.name);
             File file = new File(filePath + ".txt");
             if (file.exists()) {
                 return new File(filePath + "_____RePeat_" + getRandomName(10) + ".txt");
