@@ -7,6 +7,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.conn.PoolingClientConnectionManager;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
@@ -115,7 +116,17 @@ public class HttpUtil {
     	HttpConnectionParams.setConnectionTimeout(httpParameters, Config.CONNECT_TIMEOUT_MILLI); 
     	HttpConnectionParams.setSoTimeout(httpParameters, Config.READ_TIMEOUT_MILLI);
     	HttpConnectionParams.setSocketBufferSize(httpParameters, Config.HTTP_BUFFER_SIZE);
-    	sClient = new DefaultHttpClient(httpParameters);
+    	
+    	PoolingClientConnectionManager cm = new PoolingClientConnectionManager();
+    	// Increase max total connection to 200
+    	cm.setMaxTotal(100);
+    	// Increase default max connection per route to 20
+    	cm.setDefaultMaxPerRoute(20);
+//    	// Increase max connections for localhost:80 to 50
+//    	HttpHost localhost = new HttpHost("locahost", 80);
+//    	cm.setMaxPerRoute(new HttpRoute(localhost), 10);
+
+    	sClient = new DefaultHttpClient(cm, httpParameters);
     }
 
     public static final boolean get(String urlStr, String filePath, long delayMilli, boolean enableUrlAccesser) {

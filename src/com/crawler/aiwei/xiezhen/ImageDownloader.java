@@ -50,10 +50,10 @@ public class ImageDownloader {
         }
         
         LinkedList<String> subUrls = new LinkedList<>();
-        boolean result = download(mSummary.url, mComments, mImgLinks, subUrls, true, contentDirectory + "/source_" + TextUtil.getRandomName(5) + ".html");
+        boolean result = download(mSummary.url, mComments, mImgLinks, subUrls, true, contentDirectory + "/source_" + System.currentTimeMillis() + ".html");
         if (result && subUrls.size() > 0) {
         	for (String url : subUrls) {
-        		result &= download(url, mComments, mImgLinks);
+        		result &= download(url, mComments, mImgLinks, null, false, contentDirectory + "/source_" + System.currentTimeMillis() + ".html");
         		if (!result) break;
         	}
         }

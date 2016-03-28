@@ -11,7 +11,7 @@ import com.crawler.aiwei.ListParser.Summary;
 
 public class XiezhenCrawler {
 
-    public static final String HTML_CHARSET = "utf-8";
+    public static final int PER_PAGE_COUNT = 1500;
     
     public static final String BASE_PATH = Config.BASE_PATH + "/xiezhen";
 
@@ -21,7 +21,7 @@ public class XiezhenCrawler {
     public static void main(String args[]) {
     	ensureBaseDirectory();
 
-        pull(20, 20);
+        pull(1, 227);
 
 //    	new ImageDownloader(new Summary("http://dtt.1024hgc.club/pw/read.php?tid=66835&fpage=100", "白净丰满肉丝丰满清纯靓丽美女(不美不发)【10P】", "", "")).startDownload();
     }
@@ -35,7 +35,7 @@ public class XiezhenCrawler {
     }
 
     public static void pull(int startPage, int endPage) {
-        LinkedList<Summary> summaryList = new LinkedList<Summary>();
+        final LinkedList<Summary> totals = new LinkedList<Summary>();
         for (int i = startPage; i <= endPage; i++) {
             String urlStr = String.format(LIST_URL_FORMAT, i);
             boolean result = HttpUtil.getDefend(urlStr, TEMP_FILE_LOCATION, 5);
@@ -44,23 +44,55 @@ public class XiezhenCrawler {
                 continue;
             }
             try {
-            	summaryList.addAll(ListParser.startParse(TEMP_FILE_LOCATION));
+            	totals.addAll(ListParser.startParse(TEMP_FILE_LOCATION));
             } catch (Exception e) {
                 System.err.println("Failed to parse listhtml, url->" + urlStr);
                 e.printStackTrace();
                 continue;
             }
-            if (null == summaryList || summaryList.size() < 1) {
+            if (null == totals || totals.size() < 1) {
                 System.err.println("SummaryList have not any content, url->" + urlStr);
                 continue;
             }
         }
-        System.out.println("url-count:" + summaryList.size());
-        downloadImage(summaryList);
+        System.out.println("url-count:" + totals.size());
+        
+        // 分页
+        LinkedList<LinkedList<Summary>> pageList = new LinkedList<LinkedList<Summary>>();
+        LinkedList<Summary> page = null;
+        final int count = totals.size();
+		for (int i = 0; i < count; i++) {
+			if (page == null) {
+				page = new LinkedList<Summary>();
+			}
+			
+			page.add(totals.get(i));
+			
+			if ((i + 1) % PER_PAGE_COUNT == 0 || i == count - 1) {
+				pageList.add(page);
+				page = null;
+			}
+		}
+        System.out.println("page-count:" + pageList.size());
+        // 每页一个线程，分页下载
+        for (int i = 0; i < pageList.size(); i++) {
+	        final LinkedList<Summary> current = pageList.get(i);
+        	new Thread() {
+	        	public void run() {
+	                System.err.println("start thread to download page:" + current.size());
+	                downloadImage(current);
+	        	};
+	        }.start();
+	        try {
+				Thread.sleep(10 * 1000);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+        }
     }
 
-    public static void downloadImage(List<Summary> summaryList) {
-        LinkedList<Summary> failedList = new LinkedList<Summary>();
+    public static void downloadImage(final List<Summary> summaryList) {
+        final LinkedList<Summary> failedList = new LinkedList<Summary>();
         for (Summary summary : summaryList) {
             boolean result = new ImageDownloader(summary).startDownload();
             if (!result) {
@@ -69,10 +101,11 @@ public class XiezhenCrawler {
                 System.out.println();
             }
         }
-        System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+        StringBuffer urlsBuffer = new StringBuffer("\r\n\r\n");
         for (Summary summary : failedList) {
-            System.err.println(summary.url);
+        	urlsBuffer.append(summary.url + "\r\n");
         }
+        System.out.println(urlsBuffer.toString());
     }
 
 }

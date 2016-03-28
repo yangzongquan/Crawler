@@ -60,6 +60,8 @@ public class TextUtil {
         while (nameBuffer.length() > 2 && nameBuffer.charAt(0) == '[') {
         	int index = nameBuffer.indexOf("]") + 1;
         	if (index == nameBuffer.length()) {
+        		// 处理不了，还原
+        		nameBuffer = new StringBuffer(origin.trim());
         		break;
         	}
         	nameBuffer.delete(0, index);

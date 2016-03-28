@@ -2,7 +2,7 @@ package com.crawler.aiwei;
 
 public class Config {
 
-	public static final String BASE_PATH = "D:";
+	public static final String BASE_PATH = "/Users/yang";
 
 	public static final String HTML_CHARSET = "utf-8";
 
