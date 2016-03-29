@@ -1,6 +1,8 @@
 package com.crawler.aiwei.xiezhen;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -21,9 +23,9 @@ public class XiezhenCrawler {
     public static void main(String args[]) {
     	ensureBaseDirectory();
 
-        pull(1, 227);
+        pull(100, 100);
 
-//    	new ImageDownloader(new Summary("http://dtt.1024hgc.club/pw/read.php?tid=66835&fpage=100", "白净丰满肉丝丰满清纯靓丽美女(不美不发)【10P】", "", "")).startDownload();
+//    	new ImageDownloader(new Summary("http://dtt.1024hgc.club/pw/read.php?tid=69147&fpage=100", "白净丰满", "", "")).startDownload();
     }
     
     private static void ensureBaseDirectory() {
@@ -35,7 +37,7 @@ public class XiezhenCrawler {
     }
 
     public static void pull(int startPage, int endPage) {
-        final LinkedList<Summary> totals = new LinkedList<Summary>();
+        HashSet<Summary> uniqUrlSummarys = new HashSet<>();
         for (int i = startPage; i <= endPage; i++) {
             String urlStr = String.format(LIST_URL_FORMAT, i);
             boolean result = HttpUtil.getDefend(urlStr, TEMP_FILE_LOCATION, 5);
@@ -44,17 +46,14 @@ public class XiezhenCrawler {
                 continue;
             }
             try {
-            	totals.addAll(ListParser.startParse(TEMP_FILE_LOCATION));
+            	uniqUrlSummarys.addAll(ListParser.startParse(TEMP_FILE_LOCATION));
             } catch (Exception e) {
                 System.err.println("Failed to parse listhtml, url->" + urlStr);
                 e.printStackTrace();
                 continue;
             }
-            if (null == totals || totals.size() < 1) {
-                System.err.println("SummaryList have not any content, url->" + urlStr);
-                continue;
-            }
         }
+        final LinkedList<Summary> totals = new LinkedList<Summary>(uniqUrlSummarys);
         System.out.println("url-count:" + totals.size());
         
         // 分页
@@ -77,19 +76,43 @@ public class XiezhenCrawler {
         // 每页一个线程，分页下载
         for (int i = 0; i < pageList.size(); i++) {
 	        final LinkedList<Summary> current = pageList.get(i);
-        	new Thread() {
+        	Thread t = new Thread() {
 	        	public void run() {
-	                System.err.println("start thread to download page:" + current.size());
+	                System.err.println("start thread to download page:" + current.size() + ", thread" + Thread.currentThread());
 	                downloadImage(current);
+	                System.err.println("Exit downloading thread, page:" + current.size() + ", thread" + Thread.currentThread());
+	                
+	                synchronized (XiezhenCrawler.class) {
+		                subThreads.remove(this);
+	                	if (subThreads.isEmpty()) {
+							XiezhenCrawler.class.notifyAll();
+						}
+	        		}
 	        	};
-	        }.start();
+	        };
+	        synchronized (XiezhenCrawler.class) {
+	    		subThreads.add(t);
+			}
+	        t.start();
+	        
 	        try {
 				Thread.sleep(10 * 1000);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
         }
+        
+        synchronized (XiezhenCrawler.class) {
+        	try {
+				XiezhenCrawler.class.wait();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
+        System.err.println("Exit main thread:" + Thread.currentThread());
     }
+    
+    private static ArrayList<Thread> subThreads = new ArrayList<>();
 
     public static void downloadImage(final List<Summary> summaryList) {
         final LinkedList<Summary> failedList = new LinkedList<Summary>();
@@ -98,13 +121,16 @@ public class XiezhenCrawler {
             if (!result) {
             	failedList.add(summary);
                 System.err.println("Failed to download image, details->" + summary.toString());
-                System.out.println();
+            } else {
+                System.err.println("Completed image download, details->" + summary.toString());
             }
         }
         StringBuffer urlsBuffer = new StringBuffer("\r\n\r\n");
+        urlsBuffer.append("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\r\n");
         for (Summary summary : failedList) {
         	urlsBuffer.append(summary.url + "\r\n");
         }
+        urlsBuffer.append("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
         System.out.println(urlsBuffer.toString());
     }
 

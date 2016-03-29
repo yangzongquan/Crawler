@@ -43,6 +43,32 @@ public class ListParser extends ParserCallback {
         public String toString() {
             return name + ";" + author + ";" + date + ";" + url + "\n";
         }
+        
+        @Override
+        public int hashCode() {
+        	if (url == null) {
+        		return super.hashCode();
+        	}
+        	return url.hashCode();
+        }
+        
+        @Override
+        public boolean equals(Object obj) {
+        	if (obj == null) return false;
+        	if (!(obj instanceof Summary)) {
+        		return false;
+        	}
+        	Summary s = (Summary) obj;
+        	boolean objEmpty = TextUtil.isEmpty(s.url);
+        	boolean thisEmpty = TextUtil.isEmpty(url);
+        	if (objEmpty && thisEmpty) {
+        		return true;
+        	}
+        	if (!objEmpty && !thisEmpty) {
+        		return url.equals(s.url);
+        	}
+        	return false;
+        }
 
     }
 
@@ -50,6 +76,8 @@ public class ListParser extends ParserCallback {
     static {
     	EXCLUDE_AUTHOR.add("系统消息");
     	EXCLUDE_AUTHOR.add("cctv-1");
+    	EXCLUDE_AUTHOR.add("趙敏");
+    	EXCLUDE_AUTHOR.add("敏敏");
     }
     
     public static boolean isExcludeAuthor(String author) {

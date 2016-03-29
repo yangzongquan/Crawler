@@ -16,8 +16,6 @@ import com.crawler.aiwei.TextUtil;
 
 public class ImageDownloader {
 
-    public static final String TEMP_FILE_LOCATION = XiezhenCrawler.TEMP_FILE_LOCATION;
-
     private Summary mSummary;
     LinkedList<String> mComments = new LinkedList<>();
     LinkedList<String> mImgLinks = new LinkedList<>();
@@ -27,13 +25,9 @@ public class ImageDownloader {
     }
 
     private boolean checkSummary(Summary summary) {
-        if (isEmptyText(summary.url)) return false;
-        if (isEmptyText(summary.name)) return false;
+        if (TextUtil.isEmpty(summary.url)) return false;
+        if (TextUtil.isEmpty(summary.name)) return false;
         return true;
-    }
-
-    public static boolean isEmptyText(String text) {
-        return null == text || text.length() < 1;
     }
 
     public boolean startDownload() {
@@ -58,13 +52,18 @@ public class ImageDownloader {
         	}
         }
         
+        if (result && mImgLinks.size() < 1) {
+        	result = false;
+        	System.err.println("Failed to parse imgLinks, url:" + mSummary.url);
+        }
+        
         if (result) {
         	result &= saveSummary(contentDirectory);
         	if (result) {
         		int failedCount = 0;
         		for (String imgLink : mImgLinks) {
         			String imgFilePath = generateImageFilePath(contentDirectory, imgLink);
-        			boolean ret = HttpUtil.getRetry(imgLink, imgFilePath, 0, 2, HttpUtil.defaultRetryInterval(), true);
+        			boolean ret = HttpUtil.getRetry(imgLink, imgFilePath, 0, 2, HttpUtil.defaultRetryInterval(), false);
         			if (ret) {
         				failedCount = 0;
         			} else {
@@ -103,7 +102,9 @@ public class ImageDownloader {
     }
     
     private boolean download(String urlStr, LinkedList<String> comments, LinkedList<String> imgLinks, LinkedList<String> subUrls, boolean parseSubPage, String htmlPath) {
-    	htmlPath = TextUtil.isEmpty(htmlPath) ? TEMP_FILE_LOCATION : htmlPath;
+    	if (TextUtil.isEmpty(htmlPath)) {
+    		throw new IllegalArgumentException("html path is null!");
+    	}
         boolean result = HttpUtil.getDefend(urlStr, htmlPath, 5);
         if (!result) {
             System.err.println("Failed to download imagehtml, url->" + urlStr + ", details->" + mSummary.toString());

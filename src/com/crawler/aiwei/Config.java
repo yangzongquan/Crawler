@@ -8,7 +8,7 @@ public class Config {
 
 	public static final String PREFIX_URL = "http://dtt.1024hgc.club/pw/";
 
-    public static final int READ_TIMEOUT_MILLI = 20 * 1000;
+    public static final int READ_TIMEOUT_MILLI = 30 * 1000;
     public static final int CONNECT_TIMEOUT_MILLI = 10 * 1000;
     public static final int HTTP_BUFFER_SIZE = 1024 * 100;
 
