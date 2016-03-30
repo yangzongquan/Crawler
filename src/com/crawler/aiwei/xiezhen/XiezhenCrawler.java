@@ -23,7 +23,7 @@ public class XiezhenCrawler {
     public static void main(String args[]) {
     	ensureBaseDirectory();
 
-        pull(100, 100);
+        pull(1, 227);
 
 //    	new ImageDownloader(new Summary("http://dtt.1024hgc.club/pw/read.php?tid=69147&fpage=100", "白净丰满", "", "")).startDownload();
     }

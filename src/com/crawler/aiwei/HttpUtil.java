@@ -3,17 +3,18 @@ package com.crawler.aiwei;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
-import java.util.concurrent.TimeUnit;
 
+import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.impl.conn.PoolingClientConnectionManager;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
 
 public class HttpUtil {
-	
+
+    private static final Object sDefendLock = new Object();
+
 	public static final long defaultDelay() {
 		return 1000 + (int) (Math.random() * 1000);
 	}
@@ -44,7 +45,7 @@ public class HttpUtil {
     public static final boolean get(String urlStr, String filePath) {
     	return get(urlStr, filePath, defaultDelay(), false);
     }
-
+    
     /**
      * 开始按照固定时间重试，倒数第二次等待十倍时间再重试，倒数第一次等待50倍时间再重试
      * enableUrlAccesser: false
@@ -58,7 +59,10 @@ public class HttpUtil {
      */
     public static final boolean getDefend(String urlStr, String filePath, long delayMilli, int retryCount, long retryInterval) {
     	for (int i = 0; i < retryCount; i++) {
-        	boolean result = get(urlStr, filePath, delayMilli, false);
+    		boolean result;
+        	synchronized (sDefendLock) {
+            	result = get(urlStr, filePath, delayMilli, false);
+        	}
         	if (result) {
         		return true;
         	}
@@ -110,24 +114,24 @@ public class HttpUtil {
         }
     }
     
-    private static DefaultHttpClient sClient;
-    static {
-    	HttpParams httpParameters = new BasicHttpParams();  
-    	HttpConnectionParams.setConnectionTimeout(httpParameters, Config.CONNECT_TIMEOUT_MILLI); 
-    	HttpConnectionParams.setSoTimeout(httpParameters, Config.READ_TIMEOUT_MILLI);
-    	HttpConnectionParams.setSocketBufferSize(httpParameters, Config.HTTP_BUFFER_SIZE);
-    	
-    	PoolingClientConnectionManager cm = new PoolingClientConnectionManager();
-    	// Increase max total connection to 200
-    	cm.setMaxTotal(100);
-    	// Increase default max connection per route to 20
-    	cm.setDefaultMaxPerRoute(20);
-//    	// Increase max connections for localhost:80 to 50
-//    	HttpHost localhost = new HttpHost("locahost", 80);
-//    	cm.setMaxPerRoute(new HttpRoute(localhost), 10);
-
-    	sClient = new DefaultHttpClient(cm, httpParameters);
-    }
+//    private static DefaultHttpClient sClient;
+//    static {
+//    	HttpParams httpParameters = new BasicHttpParams();  
+//    	HttpConnectionParams.setConnectionTimeout(httpParameters, Config.CONNECT_TIMEOUT_MILLI); 
+//    	HttpConnectionParams.setSoTimeout(httpParameters, Config.READ_TIMEOUT_MILLI);
+//    	HttpConnectionParams.setSocketBufferSize(httpParameters, Config.HTTP_BUFFER_SIZE);
+//    	
+//    	PoolingClientConnectionManager cm = new PoolingClientConnectionManager();
+//    	// Increase max total connection to 200
+//    	cm.setMaxTotal(100);
+//    	// Increase default max connection per route to 20
+//    	cm.setDefaultMaxPerRoute(20);
+////    	// Increase max connections for localhost:80 to 50
+////    	HttpHost localhost = new HttpHost("locahost", 80);
+////    	cm.setMaxPerRoute(new HttpRoute(localhost), 10);
+//
+//    	sClient = new DefaultHttpClient(cm, httpParameters);
+//    }
 
     public static final boolean get(String urlStr, String filePath, long delayMilli, boolean enableUrlAccesser) {
     	if (enableUrlAccesser && !UrlAccesser.isReachable(urlStr)) {
@@ -143,9 +147,16 @@ public class HttpUtil {
     	}
         InputStream input = null;
         FileOutputStream fos = null;
+        HttpClient client = null;
         HttpGet get = new HttpGet(urlStr);
         try {
-            input = sClient.execute(get).getEntity().getContent();
+        	HttpParams httpParameters = new BasicHttpParams();  
+        	HttpConnectionParams.setConnectionTimeout(httpParameters, Config.CONNECT_TIMEOUT_MILLI); 
+        	HttpConnectionParams.setSoTimeout(httpParameters, Config.READ_TIMEOUT_MILLI);
+        	HttpConnectionParams.setSocketBufferSize(httpParameters, Config.HTTP_BUFFER_SIZE);
+        	client = new DefaultHttpClient(httpParameters);
+        	
+            input = client.execute(get).getEntity().getContent();
             fos = new FileOutputStream(filePath);
             byte[] b = new byte[1024];
             int read = 0;
@@ -162,16 +173,19 @@ public class HttpUtil {
             return false;
         } finally {
             try {
-//            	get.releaseConnection();
-            	sClient.getConnectionManager().closeIdleConnections(60, TimeUnit.SECONDS);
-            } catch (Exception e) {
-            }
-            try {
                 input.close();
             } catch (Exception e) {
             }
             try {
                 fos.close();
+            } catch (Exception e) {
+            }
+            try {
+            	get.releaseConnection();
+            } catch (Exception e) {
+            }
+            try {
+            	client.getConnectionManager().shutdown();
             } catch (Exception e) {
             }
         }
