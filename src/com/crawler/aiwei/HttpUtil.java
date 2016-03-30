@@ -169,7 +169,7 @@ public class HttpUtil {
         } catch (Exception e) {
             UrlAccesser.onFailed(urlStr);
         	new File(filePath).delete();
-            System.out.println(e.getMessage());
+            System.err.println("http requst exp:" + e.getMessage());
             return false;
         } finally {
             try {

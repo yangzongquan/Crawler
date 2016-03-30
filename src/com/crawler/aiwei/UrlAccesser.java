@@ -1,6 +1,5 @@
 package com.crawler.aiwei;
 
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
 
@@ -27,8 +26,8 @@ public class UrlAccesser {
 			if (Math.random() < RETRY_PERCENT_FOR_UNREACH) {
 				return true;
 			}
-		} catch (MalformedURLException e) {
-			e.printStackTrace();
+		} catch (Exception e) {
+            System.err.println("UrlAccesser.isReachable() exp:" + e.getMessage());
 		}
 		return false;
 	}
@@ -44,8 +43,8 @@ public class UrlAccesser {
 			}
 			Integer failCount = sHostMap.get(host);
 			sHostMap.put(host, failCount == null ? 1 : failCount + 1);
-		} catch (MalformedURLException e) {
-			e.printStackTrace();
+		} catch (Exception e) {
+            System.err.println("UrlAccesser.onFailed() exp:" + e.getMessage());
 		}
 	}
 	
@@ -56,8 +55,8 @@ public class UrlAccesser {
 		try {
 			URL url = new URL(urlStr);
 			sHostMap.remove(url.getHost());
-		} catch (MalformedURLException e) {
-			e.printStackTrace();
+		} catch (Exception e) {
+            System.err.println("UrlAccesser.onSucess() exp:" + e.getMessage());
 		}
 	}
 
