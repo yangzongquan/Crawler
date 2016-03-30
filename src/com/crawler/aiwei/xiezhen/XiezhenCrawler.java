@@ -61,7 +61,7 @@ public class XiezhenCrawler {
     }
     
     public static void downloadImage(final HashSet<Summary> summarys) {
-    	final ThreadPoolExecutor excutor = new ThreadPoolExecutor(1, 10, 60L, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
+    	final ThreadPoolExecutor excutor = new ThreadPoolExecutor(10, 10, 60L, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
         final ConcurrentLinkedQueue<Summary> failedList = new ConcurrentLinkedQueue<Summary>();
         final AtomicInteger counter = new AtomicInteger(summarys.size());
         
@@ -84,7 +84,6 @@ public class XiezhenCrawler {
 		                	} catch (Exception e) {
 		                	}
 		        		}
-		                
 		            }
 				}
 			});
