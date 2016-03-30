@@ -60,14 +60,10 @@ public class ImageDownloader {
         if (result) {
         	result &= saveSummary(contentDirectory);
         	if (result) {
-        		int failedCount = 0;
         		for (String imgLink : mImgLinks) {
         			String imgFilePath = generateImageFilePath(contentDirectory, imgLink);
         			boolean ret = HttpUtil.getRetry(imgLink, imgFilePath, 0, 2, HttpUtil.defaultRetryInterval(), false);
-        			if (ret) {
-        				failedCount = 0;
-        			} else {
-        				failedCount += 1;
+        			if (!ret) {
         	            System.err.println("Failed to download img, imgLink:" + imgLink);
         			}
         			
@@ -75,11 +71,6 @@ public class ImageDownloader {
         			File imgFile = new File(imgFilePath);
         			if (imgFile.length() < Config.MIN_IMG_FILE_SIZE) {
         				imgFile.delete();
-        			}
-        			
-        			if (failedCount >= 5) {
-        				result = false;
-        				break;
         			}
         		}
         	}
