@@ -69,14 +69,14 @@ public class XiezhenCrawler {
             excutor.execute(new Runnable() {
 				public void run() {
 					boolean result = new ImageDownloader(summary).startDownload();
+		            int remain = counter.decrementAndGet();
 		            if (!result) {
 		            	failedList.add(summary);
-		                System.err.println("Failed to download image, thread:" + Thread.currentThread() + ", details->" + summary.toString());
+		                System.err.println("Failed to download image, remain:" + remain + ", thread:" + Thread.currentThread() + ", details->" + summary.toString());
 		            } else {
-		                System.err.println("Completed image download, thread:" + Thread.currentThread() + ", details->" + summary.toString());
+		                System.err.println("Completed image download, remain:" + remain + ", thread:" + Thread.currentThread() + ", details->" + summary.toString());
 		            }
 		            
-		            int remain = counter.decrementAndGet();
 		            if (remain < 1) {
 		                synchronized (XiezhenCrawler.class) {
 		                	try {
@@ -103,7 +103,7 @@ public class XiezhenCrawler {
         StringBuffer urlsBuffer = new StringBuffer("\r\n\r\n");
         urlsBuffer.append("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\r\n");
         for (Summary summary : failedList) {
-        	urlsBuffer.append(summary.url + "\r\n");
+        	urlsBuffer.append(summary.toString() + "\r\n");
         }
         urlsBuffer.append("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
         System.out.println(urlsBuffer.toString());

@@ -41,7 +41,7 @@ public class ListParser extends ParserCallback {
 
         @Override
         public String toString() {
-            return name + ";" + author + ";" + date + ";" + url + "\n";
+            return name + ";" + author + ";" + date + ";" + url;
         }
         
         @Override
