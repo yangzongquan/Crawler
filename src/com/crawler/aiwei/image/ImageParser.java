@@ -1,4 +1,4 @@
-package com.crawler.aiwei.xiezhen;
+package com.crawler.aiwei.image;
 
 import java.net.MalformedURLException;
 import java.util.LinkedList;

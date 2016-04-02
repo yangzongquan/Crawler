@@ -1,4 +1,4 @@
-package com.crawler.aiwei.xiezhen;
+package com.crawler.aiwei.image;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -16,12 +16,14 @@ import com.crawler.aiwei.TextUtil;
 
 public class ImageDownloader {
 
+	private String mDirectory;
     private Summary mSummary;
     LinkedList<String> mComments = new LinkedList<>();
     LinkedList<String> mImgLinks = new LinkedList<>();
 
-    public ImageDownloader(Summary summary) {
+    public ImageDownloader(Summary summary, String directory) {
         mSummary = summary;
+        mDirectory = directory;
     }
 
     private boolean checkSummary(Summary summary) {
@@ -182,7 +184,7 @@ public class ImageDownloader {
     }
 
 	private String ensureContentDirectory() {
-		String filePath = XiezhenCrawler.BASE_PATH + "/" + TextUtil.generateFileName(mSummary.name);
+		String filePath = mDirectory + "/" + TextUtil.generateFileName(mSummary.name);
 		File file = new File(filePath);
 		if (file.exists() && !file.isDirectory()) {
 			file.delete();

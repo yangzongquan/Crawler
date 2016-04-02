@@ -1,4 +1,4 @@
-package com.crawler.aiwei.xiezhen;
+package com.crawler.aiwei.image.jiqing;
 
 import java.io.File;
 import java.util.HashSet;
@@ -12,18 +12,19 @@ import com.crawler.aiwei.Config;
 import com.crawler.aiwei.HttpUtil;
 import com.crawler.aiwei.ListParser;
 import com.crawler.aiwei.ListParser.Summary;
+import com.crawler.aiwei.image.ImageDownloader;
 
-public class XiezhenCrawler {
+public class JiqingCrawler {
 
-    public static final String BASE_PATH = Config.BASE_PATH + "/xiezhen";
+    public static final String BASE_PATH = Config.BASE_PATH + "/jiqing";
 
     public static final String TEMP_FILE_LOCATION = BASE_PATH + "/_temp.html";
-    public static final String LIST_URL_FORMAT = "http://dtt.1024hgc.club/pw/thread.php?fid=14&page=%s";
+    public static final String LIST_URL_FORMAT = "http://dtt.1024hgc.club/pw/thread.php?fid=16&page=%s";
 
     public static void main(String args[]) {
     	ensureBaseDirectory();
 
-        pull(1, 227);
+        pull(1, 106);
 
 //    	new ImageDownloader(new Summary("http://dtt.1024hgc.club/pw/read.php?tid=69147&fpage=100", "白净丰满", "", "")).startDownload();
     }
@@ -68,7 +69,7 @@ public class XiezhenCrawler {
         for (final Summary summary : summarys) {
             excutor.execute(new Runnable() {
 				public void run() {
-					boolean result = new ImageDownloader(summary).startDownload();
+					boolean result = new ImageDownloader(summary, BASE_PATH).startDownload();
 		            int remain = counter.decrementAndGet();
 		            if (!result) {
 		            	failedList.add(summary);
@@ -78,9 +79,9 @@ public class XiezhenCrawler {
 		            }
 		            
 		            if (remain < 1) {
-		                synchronized (XiezhenCrawler.class) {
+		                synchronized (JiqingCrawler.class) {
 		                	try {
-		                		XiezhenCrawler.class.notifyAll();
+		                		JiqingCrawler.class.notifyAll();
 		                	} catch (Exception e) {
 		                	}
 		        		}
@@ -91,9 +92,9 @@ public class XiezhenCrawler {
         
         System.out.println("post all task, pendingTask:" + excutor.getQueue().size());
         
-        synchronized (XiezhenCrawler.class) {
+        synchronized (JiqingCrawler.class) {
         	try {
-        		XiezhenCrawler.class.wait();
+        		JiqingCrawler.class.wait();
         	} catch (Exception e) {
         	}
 		}
