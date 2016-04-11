@@ -64,15 +64,15 @@ public abstract class ImageCrawler {
     }
 
     public void downloadImage(final HashSet<Summary> summarys) {
-    	final ThreadPoolExecutor excutor = new ThreadPoolExecutor(10, 10, 60L, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
+    	final ThreadPoolExecutor excutor = new ThreadPoolExecutor(10, 20, 60L, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
         final ConcurrentLinkedQueue<Summary> failedList = new ConcurrentLinkedQueue<Summary>();
         final AtomicInteger counter = new AtomicInteger(summarys.size());
         
         for (final Summary summary : summarys) {
             excutor.execute(new Runnable() {
 				public void run() {
-					boolean result = new ImageDownloader(summary, mStoreDirectory).startDownload();
 		            int remain = counter.decrementAndGet();
+					boolean result = new ImageDownloader(summary, mStoreDirectory).startDownload();
 		            if (!result) {
 		            	failedList.add(summary);
 		                System.err.println("Failed to download image, remain:" + remain + ", thread:" + Thread.currentThread() + ", details->" + summary.toString());
