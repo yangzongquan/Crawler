@@ -4,8 +4,12 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 
+import org.apache.http.HttpHost;
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.conn.params.ConnRouteParams;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpConnectionParams;
@@ -154,7 +158,7 @@ public class HttpUtil {
         	HttpConnectionParams.setConnectionTimeout(httpParameters, Config.CONNECT_TIMEOUT_MILLI); 
         	HttpConnectionParams.setSoTimeout(httpParameters, Config.READ_TIMEOUT_MILLI);
         	HttpConnectionParams.setSocketBufferSize(httpParameters, Config.HTTP_BUFFER_SIZE);
-        	client = new DefaultHttpClient(httpParameters);
+        	client = getHttpClient(httpParameters);
         	
             input = client.execute(get).getEntity().getContent();
             fos = new FileOutputStream(filePath);
@@ -191,4 +195,15 @@ public class HttpUtil {
         }
     }
 
+	public static HttpClient getHttpClient(HttpParams httpParameters) {
+		DefaultHttpClient httpClient = new DefaultHttpClient(httpParameters);
+		if (!Config.ENABLE_PROXY) {
+			return httpClient;
+		}
+		httpClient.getCredentialsProvider().setCredentials(new AuthScope(Config.PROXY_HOST, Config.PROXY_PORT), 
+				new UsernamePasswordCredentials(Config.PROXY_USER_NAME, Config.PROXY_PASSWORD));
+		HttpHost proxy = new HttpHost(Config.PROXY_HOST, Config.PROXY_PORT);
+		httpClient.getParams().setParameter(ConnRouteParams.DEFAULT_PROXY, proxy);
+		return httpClient;
+	}
 }

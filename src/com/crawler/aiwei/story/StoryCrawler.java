@@ -21,7 +21,7 @@ public class StoryCrawler {
 
     public static final String TEMP_FILE_LOCATION = BASE_PATH + "/temp_story.html";
     public static final String LAST_URL_FILE_PATH = BASE_PATH + "/last_url.txt";
-    public static final String STORY_LIST_URL_FORMAT = "http://dtt.1024hgc.club/pw/thread.php?fid=17&page=%s";
+    public static final String STORY_LIST_URL_FORMAT = Config.PREFIX_URL + "thread.php?fid=17&page=%s";
 
     public static void main(String args[]) {
     	ensureBaseDirectory();
@@ -31,10 +31,10 @@ public class StoryCrawler {
 //        pullStorys(1, 376);
 
 //        updateStroys();
-//    	downloadHtml("http://dtt.1024hgc.club/pw/htm_data/17/1603/317492.html", "D:/story/temp_story.html", 5);
+//    	downloadHtml("http://1024.05ia.rocks/pw/htm_data/17/1603/317492.html", "D:/story/temp_story.html", 5);
     	
 //    	new StoryDownloader(new StorySummary("http://bww.yakexi1024.com/pw/htm_data/17/1603/316388.html", "阿里不達年代記第", "", "")).startDownload();
-//    	new StoryDownloader(new StorySummary("http://dtt.1024hgc.club/pw/htm_data/17/1603/303680.html", "aaaaaaaaaaaaaa妻孝", "", "")).startDownload();
+//    	new StoryDownloader(new StorySummary("http://1024.05ia.rocks/pw/htm_data/17/1603/303680.html", "aaaaaaaaaaaaaa妻孝", "", "")).startDownload();
     }
     
     private static void ensureBaseDirectory() {

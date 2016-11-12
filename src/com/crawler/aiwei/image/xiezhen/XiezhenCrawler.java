@@ -6,10 +6,10 @@ import com.crawler.aiwei.image.ImageCrawler;
 public class XiezhenCrawler extends ImageCrawler {
 
     public static final String BASE_PATH = Config.BASE_PATH + "/xiezhen";
-    public static final String LIST_URL_FORMAT = "http://dtt.1024hgc.club/pw/thread.php?fid=14&page=%s";
+    public static final String LIST_URL_FORMAT = Config.PREFIX_URL + "thread.php?fid=14&page=%s";
 
     public static void main(String args[]) {
-    	new XiezhenCrawler().pull(1, 1);
+    	new XiezhenCrawler().pull(2, 168);
     }
     
 	@Override
