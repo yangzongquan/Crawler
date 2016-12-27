@@ -79,6 +79,7 @@ public class ListParser extends ParserCallback {
     	EXCLUDE_AUTHOR.add("趙敏");
     	EXCLUDE_AUTHOR.add("敏敏");
     	EXCLUDE_AUTHOR.add("最新A片");
+    	EXCLUDE_AUTHOR.add("客服77701号");
     }
     
     public static boolean isExcludeAuthor(String author) {
